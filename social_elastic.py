@@ -26,7 +26,7 @@ ELASTIC_HOSTS = [os.environ['ELASTIC_HOST_PROD2']]
 
 def create_bulk_req_elastic(json_data, index, doc_type, id_field):
     action_data_string = ""
-    for i, json_post in enumerate(json_data):
+    for json_post in json_data:
         index_action = {"index":{"_index":index, "_type":doc_type, "_id":json_post[id_field]}}
         action_data_string += json.dumps(index_action, separators=(',', ':')) + '\n' + json.dumps(json_post, separators=(',', ':')) + '\n'
     return action_data_string
@@ -66,7 +66,10 @@ def insert_ig_followers(user_id, access_token, index, doc_type):
     return_ack_list = []
 
     num_followers = get_insta_data.get_followers(user_id, access_token)
-    followers_insert_timestamp = datetime.datetime.utcnow().replace(microsecond=0).isoformat() + 'Z'
+    followers_insert_timestamp = (
+        f'{datetime.datetime.utcnow().replace(microsecond=0).isoformat()}Z'
+    )
+
 
     for host in ELASTIC_HOSTS:
         es = Elasticsearch(host)
