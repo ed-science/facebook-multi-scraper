@@ -81,32 +81,30 @@ def unicode_normalize(text):
 
 
 def get_fb_page_video_data(page_id, access_token, num_posts=100, until=''):
-    base = 'https://graph.facebook.com/v{}'.format(API_VERSION)
-    node = '/{}/videos'.format(page_id)
+    base = f'https://graph.facebook.com/v{API_VERSION}'
+    node = f'/{page_id}/videos'
     fields = '/?fields=title,description,created_time,id,comments.limit(0).summary(true),likes.limit(0).summary(true),reactions.limit(0).summary(true),permalink_url,live_status,status'
-    parameters = '&limit={}&access_token={}&until={}'.format(num_posts, access_token, until)
+    parameters = f'&limit={num_posts}&access_token={access_token}&until={until}'
     url = base + node + fields + parameters
 
-    data = request_until_succeed(url).json()
-    return data
+    return request_until_succeed(url).json()
 
 
 def get_fb_page_post_data(page_id, access_token, num_posts=100, until=''):
     # Shares on videos must be grabbed from the /posts endpoint; unavailable from the /videos endpoint
-    base = 'https://graph.facebook.com/v{}'.format(API_VERSION)
-    node = '/{}/posts'.format(page_id)
+    base = f'https://graph.facebook.com/v{API_VERSION}'
+    node = f'/{page_id}/posts'
     fields = '/?fields=message,link,created_time,type,name,id,comments.limit(0).summary(true),shares,reactions.limit(0).summary(true)'
-    parameters = '&limit={}&access_token={}&until={}'.format(num_posts, access_token, until)
+    parameters = f'&limit={num_posts}&access_token={access_token}&until={until}'
     url = base + node + fields + parameters
-    
-    data = request_until_succeed(url).json()
-    return data
+
+    return request_until_succeed(url).json()
    
 
 def get_specific_reactions_for_post(status_id, access_token):
     # Reaction types are only accessible at an individual post's endpoint
-    base = 'https://graph.facebook.com/v{}'.format(API_VERSION)
-    node = '/{}'.format(status_id)
+    base = f'https://graph.facebook.com/v{API_VERSION}'
+    node = f'/{status_id}'
     reactions = '/?fields=' \
                     'reactions.type(LIKE).limit(0).summary(total_count).as(like)'\
                     ',reactions.type(LOVE).limit(0).summary(total_count).as(love)'\
@@ -114,19 +112,19 @@ def get_specific_reactions_for_post(status_id, access_token):
                     ',reactions.type(HAHA).limit(0).summary(total_count).as(haha)'\
                     ',reactions.type(SAD).limit(0).summary(total_count).as(sad)'\
                     ',reactions.type(ANGRY).limit(0).summary(total_count).as(angry)'
-    parameters = '&access_token={}'.format(access_token)
+    parameters = f'&access_token={access_token}'
     url = base + node + reactions + parameters
 
-    data = request_until_succeed(url).json()
-    return data
+    return request_until_succeed(url).json()
 
 
 def get_insights_for_post(object_id, access_token, fields, period='', since=''):
-    base = 'https://graph.facebook.com/v{}'.format(API_VERSION)
-    node = '/{}/insights/'.format(object_id)
-    parameters = '?access_token={}&period={}&since={}&date_format=U'.format(access_token, period, since)
+    base = f'https://graph.facebook.com/v{API_VERSION}'
+    node = f'/{object_id}/insights/'
+    parameters = f'?access_token={access_token}&period={period}&since={since}&date_format=U'
+
     url = base + node + fields + parameters
-    
+
     data = request_until_succeed(url)
     if data is not None:
         return data.json()
@@ -135,40 +133,36 @@ def get_insights_for_post(object_id, access_token, fields, period='', since=''):
 
 
 def get_insights_for_video(video_id, access_token, period='lifetime'):
-    base = 'https://graph.facebook.com/v{}'.format(API_VERSION)
-    node = '/{}/video_insights'.format(video_id)
+    base = f'https://graph.facebook.com/v{API_VERSION}'
+    node = f'/{video_id}/video_insights'
     fields = ''
-    parameters = '?access_token={}&period={}'.format(access_token, period)
+    parameters = f'?access_token={access_token}&period={period}'
     url = base + node + fields + parameters
-    
-    data = request_until_succeed(url).json()
-    return data
+
+    return request_until_succeed(url).json()
 
 
 def get_fb_url_shares_comments(access_token, url):
     # Remove pound signs from URL which mess up FB API
     url = url.replace('#','')
-    base = 'https://graph.facebook.com/v{}'.format(API_VERSION)
+    base = f'https://graph.facebook.com/v{API_VERSION}'
     node = ''
-    fields = '/?id={}'.format(url)
-    parameters = '&access_token={}'.format(access_token)
+    fields = f'/?id={url}'
+    parameters = f'&access_token={access_token}'
     url = base + node + fields + parameters
 
-    data = request_until_succeed(url).json()
-    return data
+    return request_until_succeed(url).json()
 
 
 def get_insights_for_page(access_token, metrics, page_id, period, start_date, excl_end_date):
-    base = 'https://graph.facebook.com/v{}'.format(FB_API_VERSION)
-    node = '/{}/insights'.format(page_id)
-    fields = '/{}'.format(metrics)
-    period_string = 'period={}&since={}&until={}'.format(period, start_date, excl_end_date)
-    parameters = '?{}&access_token={}'.format(period_string, access_token)
-    
+    base = f'https://graph.facebook.com/v{FB_API_VERSION}'
+    node = f'/{page_id}/insights'
+    fields = f'/{metrics}'
+    period_string = f'period={period}&since={start_date}&until={excl_end_date}'
+    parameters = f'?{period_string}&access_token={access_token}'
+
     url = base + node + fields + parameters
-    data = request_until_succeed(url).json()
-    
-    return data
+    return request_until_succeed(url).json()
 
 
 # def posix_to_timezone(posix_int, to_timezone):
@@ -210,14 +204,11 @@ Calculate confidence interval lower bound as scoring system to balance balance p
 i.e. ci_lower_bound(5, 10, 0.95) < ci_lower_bound(100, 200, 0.95).  For more info see http://www.evanmiller.org/how-not-to-sort-by-average-rating.html
 '''
 def ci_lower_bound(pos, n, confidence):
-    if n == 0:
+    if n == 0 or n <= pos:
         return 0
-    elif n > pos:
-        z = norm.ppf((1-(1-confidence)/2), loc=0, scale=1)
-        phat = float(pos)/n
-        return (phat + z*z/(2*n) - z * math.sqrt((phat*(1-phat)+z*z/(4*n))/n)) / (1+z*z/n)
-    else:
-        return 0
+    z = norm.ppf((1-(1-confidence)/2), loc=0, scale=1)
+    phat = float(pos)/n
+    return (phat + z*z/(2*n) - z * math.sqrt((phat*(1-phat)+z*z/(4*n))/n)) / (1+z*z/n)
 
 
 def process_fb_page_video(video, access_token, page_id):
@@ -236,7 +227,7 @@ def process_fb_page_video(video, access_token, page_id):
     num_reactions = 0 if 'reactions' not in video else video['reactions']['summary']['total_count']
     num_comments = 0 if 'comments' not in video or video.get('comments').get('summary').get('total_count') is None else video['comments']['summary']['total_count']
 
-    live_boolean = False if video.get('live_status') is None else True
+    live_boolean = video.get('live_status') is not None
 
     # Set Insights default values if a competitor or a Facebook Live Video
     total_3s_views = None
@@ -277,9 +268,9 @@ def process_fb_page_video(video, access_token, page_id):
             complete_three_s_ratio = None if total_3s_views == 0 else float(total_complete_views)/float(total_3s_views) * 100
             engagement_rate = None if total_3s_views == 0 else float(num_reactions + num_comments)/float(total_3s_views) * 100 # Video endpoint doesn't have shares
 
-    crossposted_boolean = True if total_3s_views is None and live_boolean is False else False
+    crossposted_boolean = total_3s_views is None and not live_boolean
 
-    scraped_row = {
+    return {
         'Page': page_id,
         'Video ID': video_id,
         'Published': utc_video_published,
@@ -300,9 +291,8 @@ def process_fb_page_video(video, access_token, page_id):
         'Impression Rate Non-Likers (%)': total_non_fan_impressions_rate,
         'Avg View Time': total_video_avg_time_watched,
         'Link': video_permalink,
-        'Timestamp': timestamp
+        'Timestamp': timestamp,
     }
-    return scraped_row
 
 
 def process_fb_page_video_all_metrics(video, access_token, page_id):
@@ -317,7 +307,7 @@ def process_fb_page_video_all_metrics(video, access_token, page_id):
     num_reactions = 0 if 'reactions' not in video else video['reactions']['summary']['total_count']
     num_comments = 0 if 'comments' not in video or video.get('comments').get('summary').get('total_count') is None else video['comments']['summary']['total_count']
 
-    live_boolean = False if video.get('live_status') is None else True
+    live_boolean = video.get('live_status') is not None
 
     scraped_row = {
         'Page': page_id,
@@ -337,9 +327,9 @@ def process_fb_page_video_all_metrics(video, access_token, page_id):
         video_insights = get_insights_for_video(video_id, access_token, 'lifetime')
 
         if len(video_insights['data']) > 0:
-            
+
             for metric in video_insights['data']:
-                
+
                 # Define metric name and add to scraped_row
                 metric_name = metric['name'].replace('.','')
                 metric_value = metric['values'][0]['value']
@@ -359,7 +349,10 @@ def process_fb_page_video_all_metrics(video, access_token, page_id):
             scraped_row['ten_three_s_ratio'] = None if scraped_row['total_video_views'] == 0 else float(scraped_row['total_video_10s_views'])/float(scraped_row['total_video_views']) * 100
             scraped_row['complete_three_s_ratio'] = None if scraped_row['total_video_views'] == 0 else float(scraped_row['total_video_complete_views'])/float(scraped_row['total_video_views']) * 100
 
-        scraped_row['Crossposted Video'] = True if scraped_row.get('total_video_views') is None and live_boolean is False else False
+        scraped_row['Crossposted Video'] = (
+            scraped_row.get('total_video_views') is None and not live_boolean
+        )
+
         if scraped_row.get('total_video_views') is not None:
             scraped_row['Video Views'] = scraped_row['total_video_views']
             #del scraped_row['total_video_views']
